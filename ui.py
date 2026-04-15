@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -36,10 +37,16 @@ class MainWindow(QMainWindow):
         self.canvas.setFocusPolicy(Qt.StrongFocus)
 
         controls = self.build_controls()
+        controls_scroll = QScrollArea()
+        controls_scroll.setWidgetResizable(True)
+        controls_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        controls_scroll.setWidget(controls)
+        controls_scroll.setMinimumWidth(430)
+        controls_scroll.setMaximumWidth(460)
         central = QWidget()
         layout = QHBoxLayout(central)
         layout.addWidget(self.canvas, 1)
-        layout.addWidget(controls)
+        layout.addWidget(controls_scroll)
         self.setCentralWidget(central)
         self.resize(1400, 820)
 
@@ -48,7 +55,7 @@ class MainWindow(QMainWindow):
 
     def build_controls(self) -> QWidget:
         panel = QWidget()
-        panel.setFixedWidth(420)
+        panel.setMinimumWidth(410)
         root = QVBoxLayout(panel)
         title = QLabel("Управление сценой")
         title.setStyleSheet("font-size: 18px; font-weight: 700;")
