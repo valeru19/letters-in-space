@@ -192,47 +192,63 @@ def merge_meshes(parts: Sequence[Tuple[List[Vec3], List[Tuple[int, int, int]], L
     return Mesh(vertices=vertices, faces=faces, edges=sorted(edges))
 
 
-def build_letter_o() -> Mesh:
-    w, h, d = 2.0, 3.0, 1.0
-    t = 0.5
+def build_letter_em() -> Mesh:
+    w, h, d = 2.6, 3.0, 1.0
+    t = 0.45
     parts = [
-        box_geometry(Vec3(0.0, h / 2.0 - t / 2.0, 0.0), Vec3(w, t, d)),
-        box_geometry(Vec3(0.0, -h / 2.0 + t / 2.0, 0.0), Vec3(w, t, d)),
-        box_geometry(Vec3(-w / 2.0 + t / 2.0, 0.0, 0.0), Vec3(t, h - 2.0 * t, d)),
-        box_geometry(Vec3(w / 2.0 - t / 2.0, 0.0, 0.0), Vec3(t, h - 2.0 * t, d)),
+        box_geometry(Vec3(-w / 2.0 + t / 2.0, 0.0, 0.0), Vec3(t, h, d)),
+        box_geometry(Vec3(w / 2.0 - t / 2.0, 0.0, 0.0), Vec3(t, h, d)),
     ]
+
+    # Central diagonals are approximated by a staircase of short blocks.
+    # We intentionally overlap both diagonals in the center to avoid gaps.
+    steps = 8
+    start_left = Vec3(-w / 2.0 + t * 1.1, h / 2.0 - t * 0.7, 0.0)
+    center_joint = Vec3(0.0, -h * 0.12, 0.0)
+    end_center = center_joint
+    start_center = center_joint
+    end_right = Vec3(w / 2.0 - t * 1.1, h / 2.0 - t * 0.7, 0.0)
+
+    for i in range(steps):
+        k = i / (steps - 1)
+        p = start_left * (1.0 - k) + end_center * k
+        parts.append(box_geometry(p, Vec3(t * 1.05, t * 1.05, d)))
+
+    for i in range(steps):
+        k = i / (steps - 1)
+        p = start_center * (1.0 - k) + end_right * k
+        parts.append(box_geometry(p, Vec3(t * 1.05, t * 1.05, d)))
+
+    # Extra bridge in the middle keeps the letter visually solid.
+    parts.append(box_geometry(center_joint, Vec3(t * 1.35, t * 1.25, d)))
+
     return merge_meshes(parts)
 
 
-def build_letter_ve() -> Mesh:
-    w, h, d = 2.0, 3.0, 1.0
-    t = 0.5
-    upper_h = h * 0.5 - t
-    lower_h = h * 0.5 - t
+def build_letter_pe() -> Mesh:
+    w, h, d = 2.4, 3.0, 1.0
+    t = 0.45
     parts = [
         box_geometry(Vec3(-w / 2.0 + t / 2.0, 0.0, 0.0), Vec3(t, h, d)),
+        box_geometry(Vec3(w / 2.0 - t / 2.0, 0.0, 0.0), Vec3(t, h, d)),
         box_geometry(Vec3(0.0, h / 2.0 - t / 2.0, 0.0), Vec3(w, t, d)),
-        box_geometry(Vec3(0.0, 0.0, 0.0), Vec3(w * 0.9, t, d)),
-        box_geometry(Vec3(0.0, -h / 2.0 + t / 2.0, 0.0), Vec3(w, t, d)),
-        box_geometry(Vec3(w / 2.0 - t / 2.0, h * 0.25, 0.0), Vec3(t, upper_h, d)),
-        box_geometry(Vec3(w / 2.0 - t / 2.0, -h * 0.25, 0.0), Vec3(t, lower_h, d)),
     ]
     return merge_meshes(parts)
 
 
 def build_default_objects() -> List[Object3D]:
-    obj_o = Object3D(
-        name="О",
-        mesh=build_letter_o(),
+    obj_m = Object3D(
+        name="М",
+        mesh=build_letter_em(),
         color=QColor(230, 130, 90),
         size=Vec3(1.0, 1.0, 1.0),
         position=Vec3(-1.8, 0.0, 4.5),
     )
-    obj_v = Object3D(
-        name="В",
-        mesh=build_letter_ve(),
+    obj_p = Object3D(
+        name="П",
+        mesh=build_letter_pe(),
         color=QColor(85, 155, 235),
         size=Vec3(1.0, 1.0, 1.0),
         position=Vec3(1.8, 0.0, 5.0),
     )
-    return [obj_o, obj_v]
+    return [obj_m, obj_p]

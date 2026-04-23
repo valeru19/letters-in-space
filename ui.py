@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
     QFileDialog,
+    QFrame,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -30,7 +31,7 @@ from renderer import RenderWidget
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("ЛР2: 3D буквы О и В (PySide)")
+        self.setWindowTitle("ЛР2: 3D буквы М и П (PySide)")
         self.camera = Camera()
         self.objects = build_default_objects()
         self.canvas = RenderWidget(self.objects, self.camera)
@@ -41,24 +42,31 @@ class MainWindow(QMainWindow):
         controls_scroll.setWidgetResizable(True)
         controls_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         controls_scroll.setWidget(controls)
+        controls_scroll.setFrameShape(QFrame.NoFrame)
         controls_scroll.setMinimumWidth(430)
         controls_scroll.setMaximumWidth(460)
         central = QWidget()
         layout = QHBoxLayout(central)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
         layout.addWidget(self.canvas, 1)
         layout.addWidget(controls_scroll)
         self.setCentralWidget(central)
         self.resize(1400, 820)
+        self.apply_styles()
 
     def current_object(self) -> Object3D:
         return self.objects[self.object_selector.currentIndex()]
 
     def build_controls(self) -> QWidget:
         panel = QWidget()
+        panel.setObjectName("controlsPanel")
         panel.setMinimumWidth(410)
         root = QVBoxLayout(panel)
+        root.setContentsMargins(14, 14, 14, 14)
+        root.setSpacing(10)
         title = QLabel("Управление сценой")
-        title.setStyleSheet("font-size: 18px; font-weight: 700;")
+        title.setObjectName("panelTitle")
         root.addWidget(title)
 
         self.object_selector = QComboBox()
@@ -83,8 +91,7 @@ class MainWindow(QMainWindow):
         self.color_btn = QPushButton("Выбрать цвет")
         self.color_btn.clicked.connect(self.pick_object_color)
         self.color_preview = QLabel()
-        self.color_preview.setFixedSize(40, 20)
-        self.color_preview.setStyleSheet("border: 1px solid #666;")
+        self.color_preview.setFixedSize(48, 22)
         color_row.addWidget(self.color_btn)
         color_row.addWidget(self.color_preview)
         params_form.addRow("Цвет", color_row)
@@ -180,6 +187,7 @@ class MainWindow(QMainWindow):
             "Средняя кнопка - панорамирование\n"
             "Колесо - зум буквы (Shift + колесо - камера)"
         )
+        hint.setObjectName("hintLabel")
         hint.setWordWrap(True)
         root.addWidget(hint)
         root.addStretch(1)
@@ -196,6 +204,106 @@ class MainWindow(QMainWindow):
         box.setSingleStep(step)
         box.setValue(value)
         return box
+
+    def apply_styles(self) -> None:
+        self.setStyleSheet(
+            """
+            QMainWindow {
+                background-color: #11151c;
+            }
+            QWidget#controlsPanel {
+                background-color: #1b2230;
+                border-radius: 10px;
+            }
+            QLabel {
+                color: #d8e1f0;
+            }
+            QLabel#panelTitle {
+                color: #eef4ff;
+                font-size: 20px;
+                font-weight: 700;
+                padding-bottom: 4px;
+            }
+            QLabel#hintLabel {
+                color: #b9c5da;
+                background-color: #151b26;
+                border: 1px solid #2f3b55;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            QGroupBox {
+                color: #eef4ff;
+                font-weight: 600;
+                border: 1px solid #31405e;
+                border-radius: 8px;
+                margin-top: 10px;
+                padding-top: 10px;
+                background-color: #1f2838;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+            QPushButton {
+                background-color: #2a3650;
+                color: #edf3ff;
+                border: 1px solid #3b4d70;
+                border-radius: 6px;
+                min-height: 28px;
+                padding: 4px 8px;
+            }
+            QPushButton:hover {
+                background-color: #344567;
+            }
+            QPushButton:pressed {
+                background-color: #27364f;
+            }
+            QComboBox, QDoubleSpinBox {
+                background-color: #111923;
+                color: #e4ecfb;
+                border: 1px solid #3a4d70;
+                border-radius: 6px;
+                min-height: 28px;
+                padding: 2px 6px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #111923;
+                color: #e4ecfb;
+                selection-background-color: #35517d;
+                border: 1px solid #3a4d70;
+            }
+            QCheckBox {
+                color: #dbe5f8;
+                spacing: 8px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 1px solid #4e6185;
+                border-radius: 4px;
+                background-color: #0f1520;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #4f8cff;
+                border: 1px solid #71a2ff;
+            }
+            QScrollBar:vertical {
+                background: #141b27;
+                width: 10px;
+                margin: 2px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical {
+                background: #4b5d82;
+                min-height: 25px;
+                border-radius: 4px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0;
+            }
+            """
+        )
 
     def make_move_buttons(self, callback):
         row = QHBoxLayout()
@@ -248,7 +356,8 @@ class MainWindow(QMainWindow):
 
     def update_color_preview(self, color: QColor) -> None:
         self.color_preview.setStyleSheet(
-            f"border: 1px solid #666; background-color: rgb({color.red()}, {color.green()}, {color.blue()});"
+            "border: 1px solid #7b8ead; border-radius: 6px; "
+            f"background-color: rgb({color.red()}, {color.green()}, {color.blue()});"
         )
 
     def pick_object_color(self) -> None:
@@ -371,8 +480,12 @@ class MainWindow(QMainWindow):
         self.rot_step.setValue(float(steps.get("rotate", self.rot_step.value())))
 
         objects_by_name = {obj.name: obj for obj in self.objects}
+        # Backward compatibility for previously saved O/V scenes.
+        legacy_name_map = {"О": "М", "В": "П"}
         for item in data.get("objects", []):
-            obj = objects_by_name.get(item.get("name", ""))
+            raw_name = item.get("name", "")
+            mapped_name = legacy_name_map.get(raw_name, raw_name)
+            obj = objects_by_name.get(mapped_name)
             if obj is None:
                 continue
             obj.size = Vec3.from_list(item.get("size", obj.size.to_list()))
